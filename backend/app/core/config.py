@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     # API Routing configuration
     api_prefix: str = Field(default="/api", description="Base prefix for all API routes")
 
+    # Elexon API configuration
+    elexon_base_url: str = Field(
+        default="https://data.elexon.co.uk/bmrs/api/v1",
+        description="Base URL for Elexon Insights Solution (BMRS) API",
+    )
+    elexon_timeout_seconds: float = Field(
+        default=15.0,
+        description="Timeout in seconds for external Elexon API requests",
+    )
+
     # Frontend CORS origins
     cors_origins: List[str] = Field(
         default_factory=lambda: [

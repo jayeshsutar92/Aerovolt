@@ -1,5 +1,9 @@
 """Pydantic schemas and API contracts for Aerovolt."""
 
+from app.schemas.actual import (
+    ActualGenerationListResponse,
+    ActualGenerationRecord,
+)
 from app.schemas.analytics import (
     AccuracyMetrics,
     ComparisonResponse,
@@ -21,6 +25,9 @@ __all__ = [
     "ForecastRecord",
     "ForecastListResponse",
     "ForecastFilterParams",
+    # Actual generation contracts
+    "ActualGenerationRecord",
+    "ActualGenerationListResponse",
     # Analytics & comparison contracts
     "AccuracyMetrics",
     "ForecastActualComparisonPoint",
