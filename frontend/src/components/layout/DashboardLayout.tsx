@@ -36,12 +36,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="mb-6 sm:mb-8 pb-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               {title && (
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white m-0">
+                <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-white m-0">
                   {title}
                 </h1>
               )}
               {subtitle && (
-                <p className="mt-1 text-sm text-slate-400 m-0">
+                <p className="mt-1 text-sm font-light text-slate-400 m-0">
                   {subtitle}
                 </p>
               )}
@@ -61,7 +61,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+      <footer className="w-full border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs font-light text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} Aerovolt — UK Wind Generation Analytics.</p>
           <p>Data sourced from Elexon BMRS (FUELHH & WINDFOR). Timestamps in UTC.</p>

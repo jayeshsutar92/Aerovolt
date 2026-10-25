@@ -43,13 +43,13 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       </div>
 
       {message && (
-        <p className="mt-4 text-sm font-medium text-slate-200">
+        <p className="mt-4 text-sm font-medium tracking-wide text-slate-200">
           {message}
         </p>
       )}
 
       {description && (
-        <p className="mt-1 text-xs text-slate-400 max-w-sm">
+        <p className="mt-1 text-xs font-light text-slate-400 max-w-sm">
           {description}
         </p>
       )}

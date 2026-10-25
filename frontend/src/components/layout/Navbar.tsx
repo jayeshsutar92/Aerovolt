@@ -45,14 +45,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                <span className="text-xl font-normal tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                   Aerovolt
                 </span>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60">
-                  GB Grid
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60">
+                  GB GRID
                 </span>
               </div>
-              <p className="text-xs text-slate-400 hidden sm:block">
+              <p className="text-xs font-light text-slate-400 hidden sm:block">
                 Wind Forecasting & Settlement Analytics
               </p>
             </div>
@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={(e) => handleNavClick(item.id, e)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium uppercase tracking-[0.14em] transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-sm shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -82,14 +82,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Status Indicator */}
-          <div className="hidden md:flex items-center space-x-2 text-xs font-medium text-slate-400">
+          <div className="hidden md:flex items-center space-x-2 text-[11px] font-medium uppercase tracking-[0.15em] text-slate-400">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="flex items-center space-x-1">
+            <span className="flex items-center space-x-1.5">
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>BMRS Live</span>
+              <span>BMRS LIVE</span>
             </span>
           </div>
         </div>

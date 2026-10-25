@@ -33,11 +33,11 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         <AlertTriangle className="w-6 h-6" />
       </div>
 
-      <h3 className="text-base font-semibold text-rose-200 m-0">
+      <h3 className="text-base font-medium tracking-tight text-rose-200 m-0">
         {title}
       </h3>
 
-      <p className="mt-2 text-sm text-slate-300 max-w-md m-0">
+      <p className="mt-2 text-sm font-light text-slate-300 max-w-md m-0">
         {message}
       </p>
 
@@ -51,7 +51,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-5 inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-sm font-medium transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 cursor-pointer"
+          className="mt-5 inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium uppercase tracking-[0.14em] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 cursor-pointer"
         >
           <RotateCcw className="w-4 h-4 text-slate-400" />
           <span>{retryLabel}</span>

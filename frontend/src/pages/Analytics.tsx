@@ -120,8 +120,8 @@ export const Analytics: React.FC = () => {
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/80">
             <Calendar className="w-4 h-4 text-cyan-400" />
-            <label htmlFor="analytics-date-input" className="text-xs text-slate-400 font-medium">
-              Evaluation Date:
+            <label htmlFor="analytics-date-input" className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+              EVALUATION DATE:
             </label>
             <input
               id="analytics-date-input"
@@ -131,7 +131,7 @@ export const Analytics: React.FC = () => {
                 setLoading(true);
                 setSettlementDate(e.target.value);
               }}
-              className="bg-transparent text-sm text-white font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-sm font-light text-white focus:outline-none cursor-pointer"
             />
           </div>
         </div>
@@ -140,10 +140,10 @@ export const Analytics: React.FC = () => {
           type="button"
           onClick={handleManualRefresh}
           disabled={loading}
-          className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-medium transition-colors shadow-sm shadow-cyan-950 cursor-pointer"
+          className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-medium uppercase tracking-[0.14em] transition-colors shadow-sm shadow-cyan-950 cursor-pointer"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Analysis</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>REFRESH ANALYSIS</span>
         </button>
       </div>
 
@@ -171,10 +171,10 @@ export const Analytics: React.FC = () => {
       {!loading && !error && points.length === 0 && (
         <div className="p-12 text-center rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center justify-center">
           <BarChart3 className="w-12 h-12 text-slate-600 mb-3" />
-          <h3 className="text-base font-semibold text-slate-300 mb-1">
+          <h3 className="text-base font-normal tracking-normal text-slate-300 mb-1">
             No Comparison Data Available
           </h3>
-          <p className="text-sm text-slate-500 max-w-sm mb-4">
+          <p className="text-sm font-light text-slate-500 max-w-sm mb-4">
             No overlapping forecast and actual records were identified for settlement date {settlementDate}.
           </p>
           <button
@@ -183,9 +183,9 @@ export const Analytics: React.FC = () => {
               setLoading(true);
               setSettlementDate('2026-01-01');
             }}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-200 border border-slate-700 transition-colors cursor-pointer"
           >
-            Reset to Default (2026-01-01)
+            RESET TO DEFAULT (2026-01-01)
           </button>
         </div>
       )}
@@ -197,59 +197,59 @@ export const Analytics: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* MAE */}
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Mean Absolute Error (MAE)</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">MEAN ABSOLUTE ERROR (MAE)</span>
                 <Target className="w-4 h-4 text-cyan-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
                 {metrics?.mae !== null && metrics?.mae !== undefined ? (
                   <>
                     {metrics.mae.toLocaleString()}{' '}
-                    <span className="text-xs font-normal text-slate-400">MW</span>
+                    <span className="text-sm font-light text-slate-400 ml-1">MW</span>
                   </>
                 ) : (
-                  <span className="text-sm font-normal text-slate-500">N/A</span>
+                  <span className="text-sm font-light text-slate-500">N/A</span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">Average absolute error magnitude</p>
+              <p className="mt-1 text-xs font-light text-slate-400">Average absolute error magnitude</p>
             </div>
 
             {/* RMSE */}
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Root Mean Squared Error (RMSE)</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">ROOT MEAN SQUARED ERROR (RMSE)</span>
                 <Scale className="w-4 h-4 text-blue-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
                 {metrics?.rmse !== null && metrics?.rmse !== undefined ? (
                   <>
                     {metrics.rmse.toLocaleString()}{' '}
-                    <span className="text-xs font-normal text-slate-400">MW</span>
+                    <span className="text-sm font-light text-slate-400 ml-1">MW</span>
                   </>
                 ) : (
-                  <span className="text-sm font-normal text-slate-500">N/A</span>
+                  <span className="text-sm font-light text-slate-500">N/A</span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">Penalizes large outlier errors</p>
+              <p className="mt-1 text-xs font-light text-slate-400">Penalizes large outlier errors</p>
             </div>
 
             {/* Mean Bias */}
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Mean Bias (ME)</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">MEAN BIAS (ME)</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
                 {metrics?.bias !== null && metrics?.bias !== undefined ? (
                   <>
                     {metrics.bias > 0 ? `+${metrics.bias.toLocaleString()}` : metrics.bias.toLocaleString()}{' '}
-                    <span className="text-xs font-normal text-slate-400">MW</span>
+                    <span className="text-sm font-light text-slate-400 ml-1">MW</span>
                   </>
                 ) : (
-                  <span className="text-sm font-normal text-slate-500">N/A</span>
+                  <span className="text-sm font-light text-slate-500">N/A</span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs font-light text-slate-400">
                 {metrics?.bias && metrics.bias > 0
                   ? 'Systematic over-forecasting'
                   : metrics?.bias && metrics.bias < 0
@@ -260,20 +260,20 @@ export const Analytics: React.FC = () => {
 
             {/* WAPE / Percentage Metric */}
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>WAPE (Normalized MAE)</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">WAPE (NORMALIZED MAE)</span>
                 <Percent className="w-4 h-4 text-purple-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
                 {metrics?.wape_percent !== null && metrics?.wape_percent !== undefined ? (
                   <>{metrics.wape_percent}%</>
                 ) : (
-                  <span className="text-xs font-normal text-slate-500">
+                  <span className="text-xs font-light text-slate-500">
                     Suppressed (near-zero actuals)
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs font-light text-slate-400">
                 {metrics?.sample_count ?? 0} settlement periods evaluated
               </p>
             </div>
@@ -283,10 +283,10 @@ export const Analytics: React.FC = () => {
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-white m-0">
+                <h2 className="text-base sm:text-lg font-normal tracking-tight text-white m-0">
                   Forecast vs Actual Generation
                 </h2>
-                <p className="text-xs text-slate-400 m-0">
+                <p className="text-xs font-light text-slate-400 m-0">
                   Direct overlay of procurement forecast against Elexon FUELHH actual generation (MW).
                 </p>
               </div>
@@ -359,19 +359,19 @@ export const Analytics: React.FC = () => {
 
           {/* Comparison Table */}
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm overflow-hidden">
-            <h2 className="text-lg font-semibold text-white mb-4">
+            <h2 className="text-base sm:text-lg font-normal tracking-tight text-white mb-4">
               Settlement Period Comparison Breakdown
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-800/60 text-xs uppercase text-slate-400 border-b border-slate-700/80">
+                <thead className="bg-slate-800/60 border-b border-slate-700/80">
                   <tr>
-                    <th scope="col" className="px-4 py-3">Period</th>
-                    <th scope="col" className="px-4 py-3">Delivery Window</th>
-                    <th scope="col" className="px-4 py-3 text-right">Forecast (MW)</th>
-                    <th scope="col" className="px-4 py-3 text-right">Actual Outturn (MW)</th>
-                    <th scope="col" className="px-4 py-3 text-right">Error (MW)</th>
-                    <th scope="col" className="px-4 py-3 text-right">Abs Error (MW)</th>
+                    <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">PERIOD</th>
+                    <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">DELIVERY WINDOW</th>
+                    <th scope="col" className="px-4 py-3 text-right text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">FORECAST (MW)</th>
+                    <th scope="col" className="px-4 py-3 text-right text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">ACTUAL OUTTURN (MW)</th>
+                    <th scope="col" className="px-4 py-3 text-right text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">ERROR (MW)</th>
+                    <th scope="col" className="px-4 py-3 text-right text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">ABS ERROR (MW)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
@@ -382,26 +382,26 @@ export const Analytics: React.FC = () => {
                         key={`${pt.settlement_date}-${pt.settlement_period}`}
                         className="hover:bg-slate-800/30 transition-colors"
                       >
-                        <td className="px-4 py-3 font-medium text-white">SP {pt.settlement_period}</td>
-                        <td className="px-4 py-3 font-mono text-xs">{formatUtcTime(pt.start_time)}</td>
+                        <td className="px-4 py-3 font-light text-white">SP {pt.settlement_period}</td>
+                        <td className="px-4 py-3 font-mono text-xs font-light text-slate-300">{formatUtcTime(pt.start_time)}</td>
                         <td className="px-4 py-3 text-right">
                           {pt.forecast_mw !== null ? (
-                            <span className="font-semibold text-cyan-400">
+                            <span className="font-light text-cyan-400">
                               {pt.forecast_mw.toLocaleString()} MW
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-xs text-amber-400 gap-1">
+                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1">
                               <AlertCircle className="w-3 h-3" /> Missing
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {pt.actual_mw !== null ? (
-                            <span className="font-semibold text-emerald-400">
+                            <span className="font-light text-emerald-400">
                               {pt.actual_mw.toLocaleString()} MW
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-xs text-amber-400 gap-1">
+                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1">
                               <AlertCircle className="w-3 h-3" /> Missing
                             </span>
                           )}
@@ -409,7 +409,7 @@ export const Analytics: React.FC = () => {
                         <td className="px-4 py-3 text-right">
                           {!isMissing && pt.error_mw !== null ? (
                             <span
-                              className={`font-mono text-xs font-medium ${
+                              className={`font-mono text-xs font-light ${
                                 pt.error_mw > 0
                                   ? 'text-cyan-300'
                                   : pt.error_mw < 0
@@ -420,16 +420,16 @@ export const Analytics: React.FC = () => {
                               {pt.error_mw > 0 ? `+${pt.error_mw}` : pt.error_mw} MW
                             </span>
                           ) : (
-                            <span className="text-slate-600">—</span>
+                            <span className="text-slate-600 font-light">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {!isMissing && pt.abs_error_mw !== null ? (
-                            <span className="font-mono text-xs text-slate-300">
+                            <span className="font-mono text-xs font-light text-slate-300">
                               {pt.abs_error_mw} MW
                             </span>
                           ) : (
-                            <span className="text-slate-600">—</span>
+                            <span className="text-slate-600 font-light">—</span>
                           )}
                         </td>
                       </tr>
@@ -439,7 +439,7 @@ export const Analytics: React.FC = () => {
               </table>
             </div>
             {points.length > 16 && (
-              <p className="mt-3 text-xs text-slate-500 text-center">
+              <p className="mt-3 text-xs font-light text-slate-500 text-center">
                 Showing first 16 of {points.length} comparison periods.
               </p>
             )}

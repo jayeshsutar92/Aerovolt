@@ -136,8 +136,8 @@ export const Dashboard: React.FC = () => {
           {/* Date Picker */}
           <div className="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/80">
             <Calendar className="w-4 h-4 text-cyan-400" />
-            <label htmlFor="settlement-date-input" className="text-xs text-slate-400 font-medium">
-              Settlement Date:
+            <label htmlFor="settlement-date-input" className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+              SETTLEMENT DATE:
             </label>
             <input
               id="settlement-date-input"
@@ -147,15 +147,15 @@ export const Dashboard: React.FC = () => {
                 setLoading(true);
                 setSettlementDate(e.target.value);
               }}
-              className="bg-transparent text-sm text-white font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-sm font-light text-white focus:outline-none cursor-pointer"
             />
           </div>
 
           {/* Period Dropdown */}
           <div className="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/80">
             <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-            <label htmlFor="settlement-period-select" className="text-xs text-slate-400 font-medium">
-              Period:
+            <label htmlFor="settlement-period-select" className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+              PERIOD:
             </label>
             <select
               id="settlement-period-select"
@@ -164,11 +164,11 @@ export const Dashboard: React.FC = () => {
                 setLoading(true);
                 setSelectedPeriod(e.target.value);
               }}
-              className="bg-transparent text-sm text-white font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-sm font-light text-white focus:outline-none cursor-pointer"
             >
-              <option value="" className="bg-slate-900 text-white">All Periods (1-48)</option>
+              <option value="" className="bg-slate-900 text-white font-light">All Periods (1-48)</option>
               {Array.from({ length: 48 }, (_, i) => i + 1).map((p) => (
-                <option key={p} value={p} className="bg-slate-900 text-white">
+                <option key={p} value={p} className="bg-slate-900 text-white font-light">
                   Period {p}
                 </option>
               ))}
@@ -181,10 +181,10 @@ export const Dashboard: React.FC = () => {
           type="button"
           onClick={handleManualRefresh}
           disabled={loading}
-          className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-medium transition-colors shadow-sm shadow-cyan-950 cursor-pointer"
+          className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-medium uppercase tracking-[0.14em] transition-colors shadow-sm shadow-cyan-950 cursor-pointer"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>REFRESH</span>
         </button>
       </div>
 
@@ -212,10 +212,10 @@ export const Dashboard: React.FC = () => {
       {!loading && !error && items.length === 0 && (
         <div className="p-12 text-center rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center justify-center">
           <Wind className="w-12 h-12 text-slate-600 mb-3" />
-          <h3 className="text-base font-semibold text-slate-300 mb-1">
+          <h3 className="text-base font-normal tracking-normal text-slate-300 mb-1">
             No Forecast Records Found
           </h3>
-          <p className="text-sm text-slate-500 max-w-sm mb-4">
+          <p className="text-sm font-light text-slate-500 max-w-sm mb-4">
             No wind generation forecasts are available for date {settlementDate}
             {selectedPeriod ? ` (Period ${selectedPeriod})` : ''}.
           </p>
@@ -226,9 +226,9 @@ export const Dashboard: React.FC = () => {
               setSettlementDate('2026-01-01');
               setSelectedPeriod('');
             }}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-200 border border-slate-700 transition-colors cursor-pointer"
           >
-            Reset Filters to Default (2026-01-01)
+            RESET FILTERS TO DEFAULT (2026-01-01)
           </button>
         </div>
       )}
@@ -239,47 +239,47 @@ export const Dashboard: React.FC = () => {
           {/* Key Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Peak Forecast</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">PEAK FORECAST</span>
                 <ArrowUpRight className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
-                {peakMw?.toLocaleString()} <span className="text-xs font-normal text-slate-400">MW</span>
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
+                {peakMw?.toLocaleString()} <span className="text-sm font-light text-slate-400 ml-1">MW</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Highest projected output</p>
+              <p className="mt-1 text-xs font-light text-slate-400">Highest projected output</p>
             </div>
 
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Average Forecast</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">AVERAGE FORECAST</span>
                 <TrendingUp className="w-4 h-4 text-cyan-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
-                {avgMw?.toLocaleString()} <span className="text-xs font-normal text-slate-400">MW</span>
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
+                {avgMw?.toLocaleString()} <span className="text-sm font-light text-slate-400 ml-1">MW</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Mean half-hourly generation</p>
+              <p className="mt-1 text-xs font-light text-slate-400">Mean half-hourly generation</p>
             </div>
 
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Minimum Forecast</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">MINIMUM FORECAST</span>
                 <Clock className="w-4 h-4 text-blue-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
-                {minMw?.toLocaleString()} <span className="text-xs font-normal text-slate-400">MW</span>
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
+                {minMw?.toLocaleString()} <span className="text-sm font-light text-slate-400 ml-1">MW</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Lowest projected output</p>
+              <p className="mt-1 text-xs font-light text-slate-400">Lowest projected output</p>
             </div>
 
             <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Forecast Points</span>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">FORECAST INTERVALS</span>
                 <Wind className="w-4 h-4 text-cyan-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
-                {items.length} <span className="text-xs font-normal text-slate-400">intervals</span>
+              <div className="mt-2 text-3xl sm:text-4xl font-extralight tracking-tight text-white">
+                {items.length} <span className="text-sm font-light text-slate-400 ml-1">intervals</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">30-min settlement periods</p>
+              <p className="mt-1 text-xs font-light text-slate-400">30-min settlement periods</p>
             </div>
           </div>
 
@@ -287,16 +287,16 @@ export const Dashboard: React.FC = () => {
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-white m-0">
+                <h2 className="text-base sm:text-lg font-normal tracking-tight text-white m-0">
                   Projected Generation Profile
                 </h2>
-                <p className="text-xs text-slate-400 m-0">
+                <p className="text-xs font-light text-slate-400 m-0">
                   Aggregated UK wind generation forecast (MW) across half-hourly delivery windows.
                 </p>
               </div>
-              <div className="flex items-center space-x-2 text-xs text-slate-400">
-                <span className="w-3 h-3 rounded-full bg-cyan-500 inline-block"></span>
-                <span>WINDFOR Forecast (MW)</span>
+              <div className="flex items-center space-x-2 text-[11px] font-medium uppercase tracking-[0.15em] text-slate-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span>
+                <span>WINDFOR FORECAST (MW)</span>
               </div>
             </div>
 
@@ -359,26 +359,26 @@ export const Dashboard: React.FC = () => {
 
           {/* Forecast Detail Data Table */}
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm overflow-hidden">
-            <h2 className="text-lg font-semibold text-white mb-4">
+            <h2 className="text-base sm:text-lg font-normal tracking-tight text-white mb-4">
               Forecast Delivery Schedule
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-800/60 text-xs uppercase text-slate-400 border-b border-slate-700/80">
+                <thead className="bg-slate-800/60 border-b border-slate-700/80">
                   <tr>
-                    <th scope="col" className="px-4 py-3">Settlement Period</th>
-                    <th scope="col" className="px-4 py-3">Delivery Start (UTC)</th>
-                    <th scope="col" className="px-4 py-3">Published At (UTC)</th>
-                    <th scope="col" className="px-4 py-3 text-right">Forecast Generation (MW)</th>
+                    <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">SETTLEMENT PERIOD</th>
+                    <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">DELIVERY START (UTC)</th>
+                    <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">PUBLISHED AT (UTC)</th>
+                    <th scope="col" className="px-4 py-3 text-right text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">FORECAST GENERATION (MW)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {items.slice(0, 12).map((rec) => (
                     <tr key={`${rec.settlement_date}-${rec.settlement_period}`} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-white">Period {rec.settlement_period}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{formatUtcTime(rec.start_time)}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-400">{formatUtcTime(rec.publish_time)}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-cyan-400">
+                      <td className="px-4 py-3 font-light text-white">Period {rec.settlement_period}</td>
+                      <td className="px-4 py-3 font-mono text-xs font-light text-slate-300">{formatUtcTime(rec.start_time)}</td>
+                      <td className="px-4 py-3 font-mono text-xs font-light text-slate-400">{formatUtcTime(rec.publish_time)}</td>
+                      <td className="px-4 py-3 text-right font-light text-cyan-400">
                         {rec.generation_mw.toLocaleString()} MW
                       </td>
                     </tr>
@@ -387,7 +387,7 @@ export const Dashboard: React.FC = () => {
               </table>
             </div>
             {items.length > 12 && (
-              <p className="mt-3 text-xs text-slate-500 text-center">
+              <p className="mt-3 text-xs font-light text-slate-500 text-center">
                 Showing first 12 of {items.length} settlement periods.
               </p>
             )}
