@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.3.5-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/pytest-49%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
+[![Tests](https://img.shields.io/badge/pytest-57%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
 
 Aerovolt is a specialized wind generation forecasting and procurement analytics dashboard tailored for participants in the Great Britain (GB) electricity market. It ingests national wind generation forecasts (`WINDFOR`) and half-hourly actual outturns (`FUELHH`) from the **Elexon Insights Solution (BMRS)** API, reconstructs procurement positions without lookahead bias, and evaluates forecast accuracy using industry-standard quantitative metrics (MAE, RMSE, Bias, and WAPE).
 
@@ -184,14 +184,24 @@ Aerovolt integrates directly with the **Elexon Insights Solution (BMRS)** v1 API
 - **Endpoint:** `GET /datasets/FUELHH`
 - **Description:** Metered transmission outturn aggregated by fuel category.
 - **Filter Applied:** `fuelType == "WIND"`.
+- **Temporal Resolution:** Half-hourly (30-minute intervals: 00:00, 00:30, 01:00, ..., 23:30 UTC), yielding **48 settlement periods per day** (SP 1–48).
 - **Key Fields Extracted:** `settlementDate`, `settlementPeriod`, `generation` (MW), `publishTime`.
 - **Timestamp Logic:** When `startTime` is not explicitly provided in the payload, Aerovolt calculates the delivery start timestamp from `settlementDate` and `(settlementPeriod - 1) * 30 minutes` in UTC.
 
 ### 2. `WINDFOR` (Wind Generation Forecast)
 - **Endpoint:** `GET /datasets/WINDFOR`
-- **Description:** Aggregated wind power generation forecasts published by NESO models up to 8 times daily.
+- **Description:** Aggregated national wind power generation forecasts published by NESO models up to 8 times daily.
+- **Temporal Resolution:** Hourly (60-minute intervals: 00:00, 01:00, 02:00, ..., 23:00 UTC), yielding **24 forecast intervals per day**, mapping to odd settlement periods (SP 1, 3, 5, ..., 47).
 - **Key Fields Extracted:** `startTime` (delivery start in UTC), `publishTime` (model publication in UTC), `settlementDate`, `settlementPeriod`, `generation` (projected MW).
 - **Sanitization:** Records with upstream formatting errors or lookahead violations ($\text{publishTime} > \text{startTime}$) are automatically rejected during ingestion.
+
+### 3. Data Completeness & Expected Settlement Period Coverage
+An audit of upstream Elexon data reveals an important structural difference between actual outturns and forecasts:
+- `FUELHH` actuals cover all **48 settlement periods** of the GB settlement day.
+- `WINDFOR` forecasts published by NESO for day-ahead procurement operate on a **60-minute cadence**, providing 24 delivery points per day that correspond to the start of each clock hour (odd-numbered settlement periods: SP 1, 3, 5, ..., 47).
+- **Absence of Even Periods:** Half-hourly intervals at `:30` past each hour (SP 2, 4, 6, ..., 48) are **genuinely not published** by the system operator in the WINDFOR feed.
+- **Data Integrity Guarantee:** In strict adherence to the project specification ("Represent missing records explicitly. Never fabricate values or silently substitute data"), Aerovolt **never synthesizes, interpolates, or imputes** values for missing even periods.
+- **UI & Pipeline Alignment:** The comparison pipeline aligns all 48 delivery periods of the settlement day. Periods lacking upstream forecast records are displayed with an explicit `Absent in WINDFOR` badge. Accuracy benchmarks (MAE, RMSE, Bias, and WAPE) are calculated strictly over the 24 paired hourly periods ($N = 24$).
 
 ---
 
@@ -234,6 +244,16 @@ $$\text{Bias} = \frac{1}{N} \sum_{t=1}^N (\hat{y}_t - y_t)$$
 $$\text{WAPE} = \frac{\sum_{t=1}^N |\hat{y}_t - y_t|}{\sum_{t=1}^N y_t} \times 100\%$$
 - **Zero-Generation Protection:** Percentage metrics become mathematically undefined or massively inflated when actual generation approaches zero. If total actual generation is below $1.0\text{ MW}$, Aerovolt suppresses WAPE and reports `null` to avoid misleading analytics.
 
+### 5. Mathematical Validation: Why MAE Equals Mean Bias (4,233.125 MW) on 2026-01-01
+On the baseline procurement date (`2026-01-01`), both MAE and Mean Bias evaluate to exactly **`4,233.125 MW`**. Investigation confirms that this is mathematically justified by the underlying data:
+- For every single one of the $N = 24$ evaluated delivery periods on 2026-01-01, the day-ahead forecast strictly exceeded the metered actual generation ($\hat{y}_t > y_t$).
+- The individual interval forecast errors $e_t = \hat{y}_t - y_t$ were all positive, ranging from $+3,212.0\text{ MW}$ (SP 47) to $+5,839.0\text{ MW}$ (SP 11).
+- Because $e_t > 0$ for all $t \in \{1, \dots, 24\}$, the absolute value operation has no effect:
+  $$|e_t| = e_t \quad \forall \, t \implies \sum_{t=1}^{24} |e_t| = \sum_{t=1}^{24} e_t = 101,595.0\text{ MW}$$
+- Therefore, the sample averages are identical:
+  $$\text{MAE} = \frac{101,595.0}{24} = 4,233.125\text{ MW} \quad \text{and} \quad \text{Bias} = \frac{101,595.0}{24} = 4,233.125\text{ MW}$$
+- This confirms that the identical value is physically and mathematically justified: the day-ahead forecast exhibited uniform positive bias across every hour of January 1, 2026, resulting in zero under-forecasting periods.
+
 ---
 
 ## 10. Project Structure
@@ -253,10 +273,12 @@ Aerovolt/
 │   │   ├── __init__.py
 │   │   ├── main.py              # Application entry point, CORS, root route
 │   │   ├── api/                 # API router organization
-│   │   │   ├── __init__.py
+│   │   │   ├── __init__.py      # Centralized router aggregation
 │   │   │   └── routes/
 │   │   │       ├── __init__.py
-│   │   │       └── health.py    # Health-check endpoint (/api/health)
+│   │   │       ├── health.py    # Health-check endpoint (/api/health)
+│   │   │       ├── forecasts.py # Wind generation forecast endpoint (/api/forecasts)
+│   │   │       └── analytics.py # Accuracy & outturn comparison (/api/analytics)
 │   │   ├── core/                # Centralized settings & config
 │   │   │   ├── __init__.py
 │   │   │   └── config.py        # Pydantic Settings (env vars, CORS)
@@ -274,12 +296,13 @@ Aerovolt/
 │   │   └── utils/               # Datetime & UTC normalization helpers
 │   │       ├── __init__.py
 │   │       └── datetime_utils.py
-│   └── tests/                   # Pytest test suite (49 automated tests)
+│   └── tests/                   # Pytest test suite (57 automated tests)
 │       ├── conftest.py
 │       ├── test_analytics_service.py
 │       ├── test_config.py
 │       ├── test_datetime_utils.py
 │       ├── test_elexon_service.py
+│       ├── test_forecast_routes.py
 │       ├── test_forecast_service.py
 │       ├── test_health.py
 │       └── test_schemas.py
@@ -414,9 +437,9 @@ The backend automatically serves interactive API documentation:
 - **ReDoc:** `http://127.0.0.1:8000/redoc`
 - **OpenAPI JSON:** `http://127.0.0.1:8000/openapi.json`
 
-### Implemented & Registered Endpoints
+### Registered Endpoints
 
-#### `GET /api/health`
+#### 1. `GET /api/health`
 Performs operational health check.
 - **Response `200 OK`:**
   ```json
@@ -428,8 +451,62 @@ Performs operational health check.
   }
   ```
 
-#### `GET /`
-Root index route providing service status and quick links.
+#### 2. `GET /api/forecasts`
+Queries national wind generation forecasts from Elexon `WINDFOR`, applying anti-leakage selection.
+- **Query Parameters:**
+  - `settlement_date` (string, optional): Target delivery date in `YYYY-MM-DD` format (defaults to `2026-01-01`).
+  - `settlement_period` (integer, optional): Specific settlement period (1–48).
+  - `decision_time` (string, optional): ISO-8601 decision cutoff; only forecasts published on or before this timestamp are considered.
+  - `lead_hours` (float, optional): Lead time prior to delivery window start.
+- **Response `200 OK` (`ForecastListResponse`):**
+  ```json
+  {
+    "settlement_date": "2026-01-01",
+    "total_count": 24,
+    "items": [
+      {
+        "start_time": "2026-01-01T00:00:00Z",
+        "publish_time": "2025-12-31T16:45:00Z",
+        "settlement_date": "2026-01-01",
+        "settlement_period": 1,
+        "generation_mw": 14250.0
+      }
+    ]
+  }
+  ```
+
+#### 3. `GET /api/analytics`
+Retrieves aligned forecast-versus-actual comparison points and summary error metrics.
+- **Query Parameters:**
+  - `settlement_date` (string, optional): Target delivery date in `YYYY-MM-DD` format (defaults to `2026-01-01`).
+- **Response `200 OK` (`ComparisonResponse`):**
+  ```json
+  {
+    "settlement_date": "2026-01-01",
+    "sample_count": 48,
+    "metrics": {
+      "mae": 4233.125,
+      "rmse": 4310.45,
+      "bias": 4233.125,
+      "wape_percent": 34.52,
+      "sample_count": 24
+    },
+    "points": [
+      {
+        "start_time": "2026-01-01T00:00:00Z",
+        "settlement_date": "2026-01-01",
+        "settlement_period": 1,
+        "actual_mw": 10016.875,
+        "forecast_mw": 14250.0,
+        "error_mw": 4233.125,
+        "abs_error_mw": 4233.125
+      }
+    ]
+  }
+  ```
+
+#### 4. `GET /`
+Root index route providing service status and navigation links.
 - **Response `200 OK`:**
   ```json
   {
@@ -438,11 +515,6 @@ Root index route providing service status and quick links.
     "health_check": "/api/health"
   }
   ```
-
-### Service Contracts & Planned Endpoints
-The frontend client ([`frontend/src/services/api.ts`](file:///d:/Personal%20Project/Gridbricks/frontend/src/services/api.ts)) is built against the following domain contracts serviced by [`ForecastService`](file:///d:/Personal%20Project/Gridbricks/backend/app/services/forecast_service.py) and [`AnalyticsService`](file:///d:/Personal%20Project/Gridbricks/backend/app/services/analytics_service.py):
-- **`GET /api/forecasts`:** Queries wind generation forecasts with optional `settlement_date`, `settlement_period`, and `decision_time` filters. Returns `ForecastListResponse`.
-- **`GET /api/analytics`:** Queries aligned forecast-versus-actual points and quantitative accuracy metrics (`mae`, `rmse`, `bias`, `wape_percent`). Returns `ComparisonResponse`.
 
 ---
 
@@ -457,13 +529,16 @@ cd backend
 python -m pytest tests -v
 ```
 **Verified Results:**
-- `49 passed in 0.35s`
+- `57 passed in 0.26s`
 - Includes tests for:
   - `FUELHH` and `WINDFOR` Elexon parsing, filtering, and error handling with mock transport.
   - Decision-time forecast selection (strictly rejecting forecasts published after decision time).
   - Day-Ahead (D-1 17:00 UTC) and Gate Closure selection logic.
-  - Timeseries alignment and MAE/RMSE/Bias/WAPE mathematical accuracy.
-  - Zero-generation WAPE suppression.
+  - Timeseries alignment between 24 hourly WINDFOR forecasts and 48 half-hourly FUELHH actuals.
+  - Verification that even periods absent from WINDFOR have `forecast_mw = None` without fabricating data.
+  - Exact mathematical validation of `MAE == Mean Bias` under uniform positive over-forecasting.
+  - Zero-generation WAPE suppression and empty-state handling.
+  - FastAPI route registration and parameter validation (`/api/health`, `/api/forecasts`).
   - Pydantic schema validation and UTC timestamp normalization.
   - CORS header handling and production wildcard rejection.
 
@@ -481,7 +556,7 @@ Run type-checking and bundling in `frontend/`:
 cd frontend
 npm run build
 ```
-**Verified Results:** `tsc -b && vite build` compiled 2,517 modules cleanly in `466ms`.
+**Verified Results:** `tsc -b && vite build` compiled 2,517 modules cleanly with production bundle output in `dist/`.
 
 ---
 
@@ -508,10 +583,10 @@ When containerized:
 
 ## 18. Current Limitations & Roadmap
 
-1. **API Route Exposure:** `ForecastService` and `AnalyticsService` are fully implemented and unit-tested in Python, but dedicated FastAPI HTTP routes (`/api/forecasts` and `/api/analytics`) have not yet been mounted in `backend/app/api/routes/`. The frontend handles this gracefully via its `ErrorState` retry mechanism.
-2. **Local Caching Layer:** Upstream Elexon BMRS API calls currently query directly. Adding a database (PostgreSQL/SQLite) or Redis cache will significantly reduce external API latency.
+1. **Upstream In-Memory Caching:** External Elexon BMRS API calls currently query the upstream API per request. Adding a caching layer (Redis or in-memory TTL cache) will significantly reduce latency for repeated historical queries.
+2. **Database Persistence:** Persisting historical outturn and forecast snapshots to PostgreSQL or SQLite would enable multi-month trend analysis beyond January 2026.
 3. **Solar & BESS Expansion:** Expand beyond wind power into solar PV generation outturns and Battery Energy Storage System (BESS) arbitrage analytics.
-4. **Intraday Horizon Sliders:** Add an interactive timeline slider to the UI to visualize how forecast accuracy evolves as the lead time shrinks from 24 hours to 1 hour ahead of gate closure.
+4. **Intraday Lead Time Sliders:** Add an interactive timeline slider to the UI to visualize how forecast accuracy evolves as the lead time shrinks from 24 hours to 1 hour ahead of gate closure.
 
 ---
 

@@ -175,3 +175,94 @@ def test_compare_method(analytics_service: AnalyticsService):
     assert response.sample_count == 1
     assert len(response.points) == 1
     assert response.metrics.mae == 10.0
+
+
+def test_align_24_hourly_forecasts_with_48_half_hourly_actuals(analytics_service: AnalyticsService):
+    """Elexon WINDFOR publishes hourly (24 periods: SP 1, 3, 5... 47) while FUELHH publishes
+
+    half-hourly (48 periods: SP 1..48). Verify that all 48 settlement periods are represented in
+    comparison points, with even periods explicitly marking forecast_mw as None, and summary metrics
+    evaluated exclusively over the 24 paired periods.
+    """
+    from datetime import timedelta
+
+    base_time = datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
+    publish_time = datetime(2025, 12, 31, 16, 45, tzinfo=timezone.utc)
+
+    # 48 half-hourly actuals
+    actuals = [
+        ActualGenerationRecord(
+            start_time=base_time + timedelta(minutes=30 * i),
+            settlement_date="2026-01-01",
+            settlement_period=i + 1,
+            generation_mw=1000.0 + (i * 20.0),
+        )
+        for i in range(48)
+    ]
+
+    # 24 hourly forecasts (starting at 00:00, 01:00, ..., mapping to SP 1, 3, 5, ..., 47)
+    forecasts = [
+        ForecastRecord(
+            start_time=base_time + timedelta(hours=h),
+            publish_time=publish_time,
+            settlement_date="2026-01-01",
+            settlement_period=(h * 2) + 1,
+            generation_mw=1200.0 + (h * 40.0),
+        )
+        for h in range(24)
+    ]
+
+    response = analytics_service.compare(forecasts, actuals, settlement_date="2026-01-01")
+
+    # All 48 delivery periods should be present in points for the day
+    assert len(response.points) == 48
+    assert response.sample_count == 48
+    # Only 24 periods have both actual and forecast evaluated in metrics
+    assert response.metrics.sample_count == 24
+
+    # Verify odd periods have forecast, actual, and error
+    for pt in response.points:
+        if pt.settlement_period % 2 == 1:
+            assert pt.forecast_mw is not None
+            assert pt.actual_mw is not None
+            assert pt.error_mw is not None
+            assert pt.abs_error_mw is not None
+        else:
+            # Even periods are absent in WINDFOR feed
+            assert pt.forecast_mw is None
+            assert pt.actual_mw is not None
+            assert pt.error_mw is None
+            assert pt.abs_error_mw is None
+
+
+def test_mae_equals_mean_bias_when_all_forecast_errors_positive(analytics_service: AnalyticsService):
+    """When a day experiences consistent over-forecasting (forecast > actual for all evaluated
+
+    periods), error_mw is strictly positive for every period. Thus |e_t| == e_t, meaning
+    sum(|e_t|)/N == sum(e_t)/N, making MAE mathematically identical to Mean Bias.
+    """
+    t = datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
+    # Simulate points where forecast is always greater than actual
+    points = [
+        ForecastActualComparisonPoint(
+            start_time=t,
+            settlement_date="2026-01-01",
+            settlement_period=i + 1,
+            actual_mw=1000.0,
+            forecast_mw=1000.0 + ((i + 1) * 50.0),  # strictly higher
+            error_mw=(i + 1) * 50.0,
+            abs_error_mw=(i + 1) * 50.0,
+        )
+        for i in range(24)
+    ]
+
+    metrics = analytics_service.calculate_accuracy_metrics(points)
+    assert metrics.sample_count == 24
+    assert metrics.mae is not None
+    assert metrics.bias is not None
+    # Must be exactly equal
+    assert metrics.mae == metrics.bias
+    # Average of 50, 100, ..., 1200 is 625.0
+    assert metrics.mae == 625.0
+    assert metrics.bias == 625.0
+

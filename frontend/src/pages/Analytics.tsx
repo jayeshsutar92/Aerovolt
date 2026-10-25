@@ -18,6 +18,7 @@ import {
   Percent,
   CheckCircle2,
   AlertCircle,
+  Info,
 } from 'lucide-react';
 import { api, ApiClientError } from '../services/api';
 import type { ComparisonResponse, ForecastActualComparisonPoint } from '../types';
@@ -147,6 +148,14 @@ export const Analytics: React.FC = () => {
         </button>
       </div>
 
+      {/* Evaluation Coverage Context */}
+      <div className="flex items-start sm:items-center space-x-2.5 p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 text-xs font-light text-slate-400">
+        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5 sm:mt-0" />
+        <span>
+          <strong className="text-slate-300 font-medium">Evaluation Alignment:</strong> Forecasts (WINDFOR) are published at 60-minute resolution (24 intervals) while Actuals (FUELHH) are recorded half-hourly (48 periods). Quantitative metrics (MAE, RMSE, Bias, WAPE) are evaluated over the 24 paired hourly settlement intervals.
+        </span>
+      </div>
+
       {/* Loading View */}
       {loading && (
         <LoadingState
@@ -250,7 +259,9 @@ export const Analytics: React.FC = () => {
                 )}
               </div>
               <p className="mt-1 text-xs font-light text-slate-400">
-                {metrics?.bias && metrics.bias > 0
+                {metrics?.mae !== null && metrics?.bias !== null && metrics?.mae === metrics?.bias
+                  ? 'MAE = Bias because forecast exceeded actuals in every interval'
+                  : metrics?.bias && metrics.bias > 0
                   ? 'Systematic over-forecasting'
                   : metrics?.bias && metrics.bias < 0
                   ? 'Systematic under-forecasting'
@@ -274,7 +285,7 @@ export const Analytics: React.FC = () => {
                 )}
               </div>
               <p className="mt-1 text-xs font-light text-slate-400">
-                {metrics?.sample_count ?? 0} settlement periods evaluated
+                {metrics?.sample_count ?? 0} of 48 periods evaluated (24 hourly pairs)
               </p>
             </div>
           </div>
@@ -340,8 +351,9 @@ export const Analytics: React.FC = () => {
                     name="Selected Forecast (MW)"
                     stroke="#06b6d4"
                     strokeWidth={2}
-                    dot={{ r: 2 }}
+                    dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
+                    connectNulls={true}
                   />
                   <Line
                     type="monotone"
@@ -359,12 +371,17 @@ export const Analytics: React.FC = () => {
 
           {/* Comparison Table */}
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm overflow-hidden">
-            <h2 className="text-base sm:text-lg font-normal tracking-tight text-white mb-4">
-              Settlement Period Comparison Breakdown
-            </h2>
-            <div className="overflow-x-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+              <h2 className="text-base sm:text-lg font-normal tracking-tight text-white">
+                Settlement Period Comparison Breakdown
+              </h2>
+              <span className="text-xs font-light text-slate-400">
+                All 48 Settlement Periods (30-min intervals)
+              </span>
+            </div>
+            <div className="overflow-x-auto max-h-[520px] overflow-y-auto border border-slate-800/80 rounded-lg">
               <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-800/60 border-b border-slate-700/80">
+                <thead className="bg-slate-800/95 sticky top-0 border-b border-slate-700/80 backdrop-blur z-10">
                   <tr>
                     <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">PERIOD</th>
                     <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">DELIVERY WINDOW</th>
@@ -375,7 +392,7 @@ export const Analytics: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {points.slice(0, 16).map((pt) => {
+                  {points.map((pt) => {
                     const isMissing = pt.forecast_mw === null || pt.actual_mw === null;
                     return (
                       <tr
@@ -390,8 +407,8 @@ export const Analytics: React.FC = () => {
                               {pt.forecast_mw.toLocaleString()} MW
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1">
-                              <AlertCircle className="w-3 h-3" /> Missing
+                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1 bg-amber-950/20 px-2 py-0.5 rounded border border-amber-900/30">
+                              <AlertCircle className="w-3 h-3" /> Absent in WINDFOR
                             </span>
                           )}
                         </td>
@@ -401,7 +418,7 @@ export const Analytics: React.FC = () => {
                               {pt.actual_mw.toLocaleString()} MW
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1">
+                            <span className="inline-flex items-center text-xs font-light text-amber-400 gap-1 bg-amber-950/20 px-2 py-0.5 rounded border border-amber-900/30">
                               <AlertCircle className="w-3 h-3" /> Missing
                             </span>
                           )}
@@ -438,11 +455,9 @@ export const Analytics: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            {points.length > 16 && (
-              <p className="mt-3 text-xs font-light text-slate-500 text-center">
-                Showing first 16 of {points.length} comparison periods.
-              </p>
-            )}
+            <p className="mt-3 text-xs font-light text-slate-500 text-center">
+              Displaying all {points.length} settlement periods. Metrics are evaluated over the {metrics?.sample_count ?? 0} periods with paired actuals and WINDFOR forecasts.
+            </p>
           </div>
         </div>
       )}

@@ -16,6 +16,7 @@ import {
   TrendingUp,
   RefreshCw,
   SlidersHorizontal,
+  Info,
 } from 'lucide-react';
 import { api, ApiClientError } from '../services/api';
 import type { ForecastListResponse, ForecastRecord } from '../types';
@@ -188,6 +189,14 @@ export const Dashboard: React.FC = () => {
         </button>
       </div>
 
+      {/* Source Data Coverage Banner */}
+      <div className="flex items-start sm:items-center space-x-2.5 p-3 rounded-lg bg-slate-900/40 border border-slate-800/80 text-xs font-light text-slate-400">
+        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5 sm:mt-0" />
+        <span>
+          <strong className="text-slate-300 font-medium">Data Coverage Note:</strong> Elexon WINDFOR provides national wind forecasts at 60-minute resolution (24 hourly intervals across SP 1, 3, 5... 47). Intermediate half-hourly periods (SP 2, 4, 6...) are not published in this upstream dataset.
+        </span>
+      </div>
+
       {/* Loading View */}
       {loading && (
         <LoadingState
@@ -215,10 +224,15 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-base font-normal tracking-normal text-slate-300 mb-1">
             No Forecast Records Found
           </h3>
-          <p className="text-sm font-light text-slate-500 max-w-sm mb-4">
+          <p className="text-sm font-light text-slate-400 max-w-md mb-3">
             No wind generation forecasts are available for date {settlementDate}
             {selectedPeriod ? ` (Period ${selectedPeriod})` : ''}.
           </p>
+          {selectedPeriod && parseInt(selectedPeriod, 10) % 2 === 0 && (
+            <p className="text-xs font-light text-amber-300/90 max-w-md mb-4 bg-amber-950/20 px-3.5 py-2.5 rounded-lg border border-amber-900/40 leading-relaxed text-left sm:text-center">
+              <strong>Period {selectedPeriod} Notice:</strong> Elexon WINDFOR publishes forecasts at 60-minute resolution (odd settlement periods 1, 3, 5...). Intermediate half-hour periods (even numbers) are not published by NGESO in this feed.
+            </p>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -359,12 +373,23 @@ export const Dashboard: React.FC = () => {
 
           {/* Forecast Detail Data Table */}
           <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 shadow-sm overflow-hidden">
-            <h2 className="text-base sm:text-lg font-normal tracking-tight text-white mb-4">
-              Forecast Delivery Schedule
-            </h2>
-            <div className="overflow-x-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div>
+                <h2 className="text-base sm:text-lg font-normal tracking-tight text-white m-0">
+                  Forecast Delivery Schedule
+                </h2>
+                <p className="text-xs font-light text-slate-400 m-0">
+                  Detailed breakdown of all published hourly wind forecasts for {settlementDate}.
+                </p>
+              </div>
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-cyan-400 bg-cyan-950/40 px-2.5 py-1 rounded-full border border-cyan-800/40">
+                {items.length} HOURLY INTERVALS
+              </span>
+            </div>
+
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-800/60 border-b border-slate-700/80">
+                <thead className="bg-slate-800/90 sticky top-0 z-10 backdrop-blur-sm border-b border-slate-700/80">
                   <tr>
                     <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">SETTLEMENT PERIOD</th>
                     <th scope="col" className="px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">DELIVERY START (UTC)</th>
@@ -373,7 +398,7 @@ export const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {items.slice(0, 12).map((rec) => (
+                  {items.map((rec) => (
                     <tr key={`${rec.settlement_date}-${rec.settlement_period}`} className="hover:bg-slate-800/30 transition-colors">
                       <td className="px-4 py-3 font-light text-white">Period {rec.settlement_period}</td>
                       <td className="px-4 py-3 font-mono text-xs font-light text-slate-300">{formatUtcTime(rec.start_time)}</td>
@@ -386,11 +411,9 @@ export const Dashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            {items.length > 12 && (
-              <p className="mt-3 text-xs font-light text-slate-500 text-center">
-                Showing first 12 of {items.length} settlement periods.
-              </p>
-            )}
+            <p className="mt-3 text-xs font-light text-slate-500 text-center">
+              Displaying all {items.length} published hourly forecast intervals for settlement date {settlementDate}.
+            </p>
           </div>
         </div>
       )}
