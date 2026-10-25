@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.3.5-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/pytest-57%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
+[![Tests](https://img.shields.io/badge/pytest-59%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
 
 Aerovolt is a specialized wind generation forecasting and procurement analytics dashboard tailored for participants in the Great Britain (GB) electricity market. It ingests national wind generation forecasts (`WINDFOR`) and half-hourly actual outturns (`FUELHH`) from the **Elexon Insights Solution (BMRS)** API, reconstructs procurement positions without lookahead bias, and evaluates forecast accuracy using industry-standard quantitative metrics (MAE, RMSE, Bias, and WAPE).
 
@@ -301,7 +301,7 @@ Aerovolt/
 │   │   └── utils/               # Datetime & UTC normalization helpers
 │   │       ├── __init__.py
 │   │       └── datetime_utils.py
-│   └── tests/                   # Pytest test suite (57 automated tests)
+│   └── tests/                   # Pytest test suite (59 automated tests)
 │       ├── conftest.py
 │       ├── test_analytics_service.py
 │       ├── test_config.py
@@ -537,7 +537,7 @@ cd backend
 python -m pytest tests -v
 ```
 **Verified Results:**
-- `57 passed in 0.26s`
+- `59 passed in 0.28s`
 - Includes tests for:
   - `FUELHH` and `WINDFOR` Elexon parsing, filtering, and error handling with mock transport.
   - Decision-time forecast selection (strictly rejecting forecasts published after decision time).

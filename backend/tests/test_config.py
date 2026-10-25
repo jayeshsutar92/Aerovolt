@@ -42,3 +42,29 @@ def test_production_allows_explicit_origins():
     )
     assert settings.environment == "production"
     assert settings.cors_origins == ["https://aerovolt.app", "https://admin.aerovolt.app"]
+
+
+def test_cors_origins_from_environment_comma_separated(monkeypatch):
+    """Verify that pydantic-settings EnvSettingsSource correctly parses comma-separated CORS_ORIGINS."""
+    monkeypatch.setenv(
+        "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:80"
+    )
+    settings = Settings()
+    assert settings.cors_origins == [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:80",
+    ]
+
+
+def test_cors_origins_from_environment_json_array(monkeypatch):
+    """Verify that pydantic-settings EnvSettingsSource correctly parses JSON array CORS_ORIGINS."""
+    monkeypatch.setenv(
+        "CORS_ORIGINS", '["http://localhost:5173", "http://127.0.0.1:5173"]'
+    )
+    settings = Settings()
+    assert settings.cors_origins == [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+

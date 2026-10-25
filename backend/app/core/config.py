@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     )
 
     # Frontend CORS origins
-    cors_origins: List[str] = Field(
+    cors_origins: Union[List[str], str] = Field(
         default_factory=lambda: [
             "http://localhost:5173",
             "http://127.0.0.1:5173",
