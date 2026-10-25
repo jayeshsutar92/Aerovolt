@@ -1,0 +1,29 @@
+# Git and Agent configurations
+.git/
+.agent/
+
+# Python virtual environments and caches
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+
+# Node dependencies and build artifacts
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/*.tsbuildinfo
+
+# Local environment secrets (preserve .env.example templates)
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS and Editor clutter
+**/.DS_Store
+**/Thumbs.db
+**/.idea/
+**/.vscode/

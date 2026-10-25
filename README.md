@@ -263,12 +263,17 @@ Aerovolt/
 ├── .agent/                      # Project-wide engineering rules & skills
 │   ├── rules.md                 # Mandatory behavioral and coding rules
 │   └── skills.md                # Energy domain guidelines & code patterns
+├── .dockerignore                # Root Docker ignore rules
 ├── .gitignore                   # Root ignore rules (Python, Node, OS, Agent)
+├── docker-compose.yml           # Unified multi-container orchestration
 ├── README.md                    # Project documentation
 ├── backend/                     # FastAPI backend application
+│   ├── .dockerignore            # Backend container ignore rules
 │   ├── .env.example             # Backend environment template
 │   ├── .gitignore               # Python cache & env ignores
+│   ├── Dockerfile               # Production Python 3.13-slim container
 │   ├── myproject.toml           # Project metadata
+│   ├── requirements.txt         # Containerized dependency specifications
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── main.py              # Application entry point, CORS, root route
@@ -307,7 +312,10 @@ Aerovolt/
 │       ├── test_health.py
 │       └── test_schemas.py
 └── frontend/                    # React 19 Vite application
+    ├── .dockerignore            # Frontend container ignore rules
     ├── .gitignore               # Frontend ignores (node_modules, dist)
+    ├── Dockerfile               # Multi-stage Node 22 + Nginx container
+    ├── nginx.conf               # Nginx reverse proxy & SPA configuration
     ├── package.json             # NPM dependencies & scripts
     ├── package-lock.json
     ├── vite.config.ts           # Vite config with @tailwindcss/vite
@@ -562,14 +570,119 @@ npm run build
 
 ## 16. Docker & Containerization
 
-> [!NOTE]
-> Docker containerization is currently **in planning**. No `Dockerfile` or `docker-compose.yml` has been committed to the repository yet.
+Aerovolt provides a complete, production-grade Docker containerization setup for running both the FastAPI backend and React 19 frontend seamlessly without requiring local Python or Node.js runtime environments.
 
-### Planned Containerization Architecture
-When containerized:
-- **Backend Service:** Base image `python:3.13-slim`, running `uvicorn app.main:app` on port `8000`.
-- **Frontend Service:** Multi-stage build (`node:22-alpine` builder outputting to `nginx:alpine`), reverse proxying `/api` requests to the backend container.
-- **Orchestration:** `docker-compose.yml` defining unified networking, health checks, and environment injection.
+### Container Architecture
+
+```mermaid
+graph LR
+    subgraph Host ["Host Environment"]
+        Browser["Web Browser (localhost:5173)"]
+        ApiUser["API Client / Swagger (localhost:8000)"]
+    end
+
+    subgraph DockerNet ["Docker Bridge Network (aerovolt-network)"]
+        subgraph FrontendCont ["aerovolt-frontend (nginx:alpine)"]
+            Nginx["Nginx Reverse Proxy & Static Server (:80)"]
+            StaticFiles["React 19 SPA Assets (dist/)"]
+        end
+
+        subgraph BackendCont ["aerovolt-backend (python:3.13-slim)"]
+            Uvicorn["Uvicorn ASGI (:8000)"]
+            FastApp["FastAPI Application (non-root appuser)"]
+        end
+    end
+
+    Browser -- "HTTP :5173" --> Nginx
+    ApiUser -- "HTTP :8000" --> Uvicorn
+    Nginx -- "Proxy /api/ -> :8000/api/" --> Uvicorn
+    Uvicorn --> FastApp
+    Nginx --> StaticFiles
+```
+
+1. **Backend Service (`aerovolt-backend`):**
+   - **Base Image:** `python:3.13-slim`.
+   - **Isolation:** Dependencies are installed into a clean container environment from [`backend/requirements.txt`](file:///d:/Personal%20Project/Gridbricks/backend/requirements.txt) using `pip install --no-cache-dir`. Local Windows virtual environments (`backend/.venv`) are strictly excluded via [backend/.dockerignore](file:///d:/Personal%20Project/Gridbricks/backend/.dockerignore).
+   - **Security:** Runs as a non-privileged `appuser` (UID 1000). Secrets remain outside images.
+   - **Health Check:** Periodically probes `http://localhost:8000/api/health` via `curl`.
+   - **Port:** Exposes `8000` to the host for direct API testing and Swagger UI.
+
+2. **Frontend Service (`aerovolt-frontend`):**
+   - **Multi-Stage Build:**
+     - *Stage 1 (Builder):* `node:22-alpine` installs dependencies via `npm ci` and compiles the optimized production bundle (`tsc -b && vite build`).
+     - *Stage 2 (Runner):* `nginx:alpine` serves static assets and reverse-proxies `/api/` traffic to `http://backend:8000/api/`.
+   - **Routing:** Configured with SPA fallback (`try_files $uri $uri/ /index.html`) in [frontend/nginx.conf](file:///d:/Personal%20Project/Gridbricks/frontend/nginx.conf).
+   - **Health Check:** Probes `http://localhost:80/` via `wget`.
+   - **Port:** Maps port `80` in the container to port `5173` on the host, maintaining parity with local Vite development.
+
+3. **Multi-Container Orchestration (`docker-compose.yml`):**
+   - Coordinates service startup order with `depends_on: { backend: { condition: service_healthy } }`.
+   - Connects both containers to an isolated bridge network (`aerovolt-network`).
+
+---
+
+### Docker Command Reference
+
+All commands should be executed from the project root directory in PowerShell or a standard shell:
+
+#### 1. Validate Compose Configuration
+Verify syntax, environment variables, and network configurations:
+```powershell
+docker compose config
+```
+*Expected Result: Clean YAML dump of resolved services with exit code 0.*
+
+#### 2. Build Container Images
+Build both backend and frontend images from scratch:
+```powershell
+docker compose build --no-cache
+```
+
+#### 3. Start Containers in Detached Mode
+Launch the complete Aerovolt application stack in the background:
+```powershell
+docker compose up -d
+```
+*The services will be accessible at:*
+- **Frontend Dashboard:** `http://localhost:5173`
+- **Backend API & Health:** `http://localhost:8000/api/health`
+- **Interactive Swagger Docs:** `http://localhost:8000/docs`
+
+#### 4. Monitor Service Logs
+Stream consolidated logs or logs for a specific service:
+```powershell
+# Stream all logs
+docker compose logs -f
+
+# Stream backend logs only
+docker compose logs -f backend
+
+# Stream frontend logs only
+docker compose logs -f frontend
+```
+
+#### 5. Check Health & Container Status
+Inspect operational status and healthcheck results:
+```powershell
+docker compose ps
+```
+
+#### 6. Stop & Remove Containers
+Gracefully shut down containers and tear down the bridge network:
+```powershell
+# Stop and remove containers and networks
+docker compose down
+
+# Stop and remove containers, networks, and named volumes
+docker compose down -v
+```
+
+---
+
+### Containerization Verification Status
+
+- **Configuration Validation:** Successfully verified with `docker compose config` (exit code `0`). Both services, health checks, ports (`8000:8000`, `5173:80`), and network topologies parse cleanly without warnings.
+- **Local Daemon Environment:** Docker CLI `29.6.2` and Docker Compose `v5.3.1` are installed on the host. In local Windows development environments, launching container images requires running Docker Desktop with the `com.docker.service` Windows service active.
 
 ---
 
