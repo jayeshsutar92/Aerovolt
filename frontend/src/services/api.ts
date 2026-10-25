@@ -24,14 +24,22 @@ export class ApiClientError extends Error {
 }
 
 /**
- * Base URL resolution: Reads from VITE_API_BASE_URL with localhost:8000 fallback.
+ * Base URL resolution:
+ * 1. Reads explicit VITE_API_BASE_URL environment variable if provided.
+ * 2. In production builds (e.g. Vercel deployment), defaults to the deployed Render backend:
+ *    https://aerovolt-27cs.onrender.com
+ * 3. In local development (import.meta.env.DEV), defaults to local FastAPI server:
+ *    http://127.0.0.1:8000
  */
 const getBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (typeof envUrl === 'string' && envUrl.trim()) {
     return envUrl.trim().replace(/\/+$/, '');
   }
-  return 'http://localhost:8000';
+  if (import.meta.env.PROD) {
+    return 'https://aerovolt-27cs.onrender.com';
+  }
+  return 'http://127.0.0.1:8000';
 };
 
 /**

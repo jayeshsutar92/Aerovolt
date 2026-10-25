@@ -32,6 +32,15 @@ def test_cors_headers_allowed_origin(client: TestClient):
     assert response.headers.get("access-control-allow-origin") == origin
 
 
+def test_cors_headers_production_origin(client: TestClient):
+    """CORS requests from production Vercel frontend origin should be permitted."""
+    origin = "https://aerovolt-alpha.vercel.app"
+    response = client.get("/api/health", headers={"Origin": origin})
+
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == origin
+
+
 def test_cors_headers_disallowed_origin(client: TestClient):
     """CORS requests from unauthorized origins should not receive access-control-allow-origin."""
     origin = "http://malicious-site.example.com"

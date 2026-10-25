@@ -42,6 +42,7 @@ class Settings(BaseSettings):
         default_factory=lambda: [
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            "https://aerovolt-alpha.vercel.app",
         ],
         description="List of allowed CORS origins for browser clients",
     )
@@ -60,12 +61,24 @@ class Settings(BaseSettings):
                 try:
                     parsed = json.loads(value)
                     if isinstance(parsed, list):
-                        return [str(item).strip() for item in parsed if str(item).strip()]
+                        return [
+                            str(item).strip().rstrip("/")
+                            for item in parsed
+                            if str(item).strip()
+                        ]
                 except json.JSONDecodeError:
                     pass
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
+            return [
+                origin.strip().rstrip("/")
+                for origin in value.split(",")
+                if origin.strip()
+            ]
         if isinstance(value, list):
-            return [str(origin).strip() for origin in value if str(origin).strip()]
+            return [
+                str(origin).strip().rstrip("/")
+                for origin in value
+                if str(origin).strip()
+            ]
         raise ValueError(f"Invalid CORS origins value: {value}")
 
     @model_validator(mode="after")

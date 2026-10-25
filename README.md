@@ -6,7 +6,13 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.3.5-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/pytest-59%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
+[![Tests](https://img.shields.io/badge/pytest-61%20passed-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
+
+> **Live Deployment URLs**
+> - **Production Frontend:** [https://aerovolt-alpha.vercel.app/](https://aerovolt-alpha.vercel.app/)
+> - **Production Backend API:** [https://aerovolt-27cs.onrender.com](https://aerovolt-27cs.onrender.com)
+> - **Interactive Swagger Docs:** [https://aerovolt-27cs.onrender.com/docs](https://aerovolt-27cs.onrender.com/docs)
+> - **Backend Health Status:** [https://aerovolt-27cs.onrender.com/api/health](https://aerovolt-27cs.onrender.com/api/health)
 
 Aerovolt is a specialized wind generation forecasting and procurement analytics dashboard tailored for participants in the Great Britain (GB) electricity market. It ingests national wind generation forecasts (`WINDFOR`) and half-hourly actual outturns (`FUELHH`) from the **Elexon Insights Solution (BMRS)** API, reconstructs procurement positions without lookahead bias, and evaluates forecast accuracy using industry-standard quantitative metrics (MAE, RMSE, Bias, and WAPE).
 
@@ -405,21 +411,26 @@ Open a **second** PowerShell terminal:
 # Navigate into frontend directory
 cd frontend
 
+# Create your local environment file from template
+Copy-Item .env.example .env
+
 # Install npm dependencies
 npm install
 
 # Start the Vite development server
 npm run dev
 ```
-*The React application will launch at `http://localhost:5173`.*
+*The React application will launch at `http://localhost:5173` and will communicate with the local FastAPI backend at `http://127.0.0.1:8000` via `VITE_API_BASE_URL`.*
 
 ---
 
 ## 13. Environment Configuration
 
-All backend environment settings are loaded through [`backend/app/core/config.py`](file:///d:/Personal%20Project/Gridbricks/backend/app/core/config.py). A template is provided in [`backend/.env.example`](file:///d:/Personal%20Project/Gridbricks/backend/.env.example).
+Aerovolt uses clean, environment-based configuration separation for local development, Docker, and cloud deployments (Vercel and Render).
 
-### Configuration Variables
+### Backend Configuration (`backend/.env`)
+
+Backend settings are loaded through [`backend/app/core/config.py`](file:///d:/Personal%20Project/Gridbricks/backend/app/core/config.py) from environment variables or a local `backend/.env` file. A reference template is provided in [`backend/.env.example`](file:///d:/Personal%20Project/Gridbricks/backend/.env.example).
 
 | Variable | Type | Default | Description |
 | :--- | :---: | :--- | :--- |
@@ -428,13 +439,35 @@ All backend environment settings are loaded through [`backend/app/core/config.py
 | `VERSION` | string | `0.1.0` | API semver version |
 | `DEBUG` | boolean | `false` | Enables verbose debug logs |
 | `API_PREFIX` | string | `/api` | Base prefix for all registered API endpoints |
-| `CORS_ORIGINS` | string / list | `http://localhost:5173,http://127.0.0.1:5173` | Allowed frontend origins (wildcard `*` prohibited in production) |
+| `CORS_ORIGINS` | string / JSON list | `http://localhost:5173,http://127.0.0.1:5173,https://aerovolt-alpha.vercel.app` | Allowed browser origins (comma-separated or JSON list). Wildcard `*` is strictly rejected in production. Trailing slashes are automatically normalized. |
 | `ELEXON_BASE_URL` | string | `https://data.elexon.co.uk/bmrs/api/v1` | Upstream Elexon Insights Solution REST base URL |
-| `ELEXON_TIMEOUT_SECONDS` | float | `15.0` | Request timeout for Elexon BMRS network calls |
-| `VITE_API_BASE_URL` *(frontend)* | string | `http://localhost:8000` | Target URL for frontend API client |
+| `ELEXON_TIMEOUT_SECONDS` | float | `15.0` | Request timeout in seconds for Elexon BMRS network calls |
+
+### Frontend Configuration (`frontend/.env`)
+
+Frontend environment settings are read by Vite via `import.meta.env` in [`frontend/src/services/api.ts`](file:///d:/Personal%20Project/Gridbricks/frontend/src/services/api.ts). Templates are provided in [`frontend/.env.example`](file:///d:/Personal%20Project/Gridbricks/frontend/.env.example) and [`frontend/.env.production`](file:///d:/Personal%20Project/Gridbricks/frontend/.env.production).
+
+| Variable | Default (Dev) | Default (Prod) | Description |
+| :--- | :--- | :--- | :--- |
+| `VITE_API_BASE_URL` | `http://127.0.0.1:8000` | `https://aerovolt-27cs.onrender.com` | Base URL used by the frontend API client for all backend requests. |
+
+### Production Deployment Configuration
+
+#### 1. Vercel Project Settings (Frontend: `https://aerovolt-alpha.vercel.app/`)
+Under **Project Settings > Environment Variables** on Vercel:
+- **`VITE_API_BASE_URL`**: `https://aerovolt-27cs.onrender.com`
+*(Note: Because Vite inlines `import.meta.env` at build time, [`frontend/.env.production`](file:///d:/Personal%20Project/Gridbricks/frontend/.env.production) already sets this production default automatically. Setting it in Vercel project settings ensures explicit override capability.)*
+
+#### 2. Render Web Service Settings (Backend: `https://aerovolt-27cs.onrender.com`)
+Under **Environment Variables** in the Render Dashboard:
+- **`ENVIRONMENT`**: `production`
+- **`CORS_ORIGINS`**: `https://aerovolt-alpha.vercel.app,http://localhost:5173,http://127.0.0.1:5173`
+*(Allows requests from the production Vercel frontend as well as local development testing.)*
+- **`ELEXON_BASE_URL`**: `https://data.elexon.co.uk/bmrs/api/v1`
+- **`ELEXON_TIMEOUT_SECONDS`**: `15.0`
 
 > [!IMPORTANT]
-> Never commit `.env` files or secret keys to source control. `.env` is ignored in `.gitignore`.
+> Never commit active `.env` files or credentials to Git. Both `backend/.env` and `frontend/.env` are ignored by `.gitignore`. Use `.env.example` templates for configuration sharing.
 
 ---
 
@@ -537,7 +570,7 @@ cd backend
 python -m pytest tests -v
 ```
 **Verified Results:**
-- `59 passed in 0.28s`
+- `61 passed in 0.25s`
 - Includes tests for:
   - `FUELHH` and `WINDFOR` Elexon parsing, filtering, and error handling with mock transport.
   - Decision-time forecast selection (strictly rejecting forecasts published after decision time).
@@ -546,9 +579,10 @@ python -m pytest tests -v
   - Verification that even periods absent from WINDFOR have `forecast_mw = None` without fabricating data.
   - Exact mathematical validation of `MAE == Mean Bias` under uniform positive over-forecasting.
   - Zero-generation WAPE suppression and empty-state handling.
-  - FastAPI route registration and parameter validation (`/api/health`, `/api/forecasts`).
+  - FastAPI route registration and parameter validation (`/api/health`, `/api/forecasts`, `/api/analytics`).
   - Pydantic schema validation and UTC timestamp normalization.
-  - CORS header handling and production wildcard rejection.
+  - CORS origin validation, trailing slash normalization, and production wildcard rejection.
+  - Production Vercel origin (`https://aerovolt-alpha.vercel.app`) authorization.
 
 ### 2. Frontend ESLint Checks
 Run linting in `frontend/`:
@@ -688,9 +722,24 @@ docker compose down -v
 
 ## 17. Deployment Status
 
-- **Cloud Deployment:** Incomplete / Pending.
-- **Live Deployment URL:** Currently, no public cloud instance (e.g. AWS, Render, or Vercel) is provisioned.
-- **Operational Status:** The project is fully functional in a local development environment. Production deployment requires establishing container infrastructure and continuous deployment pipelines.
+- **Cloud Deployment:** Live & Operational
+- **Production Frontend:** [https://aerovolt-alpha.vercel.app/](https://aerovolt-alpha.vercel.app/) (Hosted on **Vercel**)
+- **Production Backend API:** [https://aerovolt-27cs.onrender.com](https://aerovolt-27cs.onrender.com) (Hosted on **Render**)
+- **Live Swagger Documentation:** [https://aerovolt-27cs.onrender.com/docs](https://aerovolt-27cs.onrender.com/docs)
+- **Live Health Status:** [https://aerovolt-27cs.onrender.com/api/health](https://aerovolt-27cs.onrender.com/api/health)
+
+### Deployment Architecture & Settings
+
+| Component | Platform | Live URL | Key Environment Variable |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | Vercel | `https://aerovolt-alpha.vercel.app/` | `VITE_API_BASE_URL=https://aerovolt-27cs.onrender.com` |
+| **Backend** | Render | `https://aerovolt-27cs.onrender.com` | `CORS_ORIGINS=https://aerovolt-alpha.vercel.app,http://localhost:5173,http://127.0.0.1:5173` |
+
+#### Vercel Configuration Note
+The frontend Vite configuration automatically bundles `VITE_API_BASE_URL` from [`frontend/.env.production`](file:///d:/Personal%20Project/Gridbricks/frontend/.env.production) during production builds, defaulting to `https://aerovolt-27cs.onrender.com`. In your Vercel Project Settings under **Environment Variables**, you can also explicitly set `VITE_API_BASE_URL` to override or redeploy anytime.
+
+#### Render Configuration Note
+The FastAPI backend allows `https://aerovolt-alpha.vercel.app` by default in its CORS origin list. If defining custom `CORS_ORIGINS` in the Render Dashboard, include `https://aerovolt-alpha.vercel.app` as a comma-separated origin (or JSON array). Trailing slashes are automatically stripped by the backend settings parser to ensure consistent CORS matching.
 
 ---
 

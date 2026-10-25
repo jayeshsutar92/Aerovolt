@@ -13,7 +13,7 @@ services:
       - VERSION=0.1.0
       - DEBUG=false
       - API_PREFIX=/api
-      - 'CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://localhost:80","http://localhost"]'
+      - 'CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://localhost:80","http://localhost","https://aerovolt-alpha.vercel.app"]'
       - ELEXON_BASE_URL=https://data.elexon.co.uk/bmrs/api/v1
       - ELEXON_TIMEOUT_SECONDS=15.0
     healthcheck:
@@ -30,7 +30,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=
+        - VITE_API_BASE_URL=http://127.0.0.1:8000
     container_name: aerovolt-frontend
     restart: unless-stopped
     ports:

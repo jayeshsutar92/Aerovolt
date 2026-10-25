@@ -11,6 +11,18 @@ def test_default_settings():
     assert settings.environment == "development"
     assert settings.api_prefix == "/api"
     assert "http://localhost:5173" in settings.cors_origins
+    assert "https://aerovolt-alpha.vercel.app" in settings.cors_origins
+
+
+def test_cors_origins_strips_trailing_slashes():
+    """Verify that trailing slashes in CORS origins are automatically stripped."""
+    settings = Settings(
+        cors_origins="https://aerovolt-alpha.vercel.app/, http://localhost:5173/"
+    )
+    assert settings.cors_origins == [
+        "https://aerovolt-alpha.vercel.app",
+        "http://localhost:5173",
+    ]
 
 
 def test_comma_separated_cors_origins():
