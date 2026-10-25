@@ -106,6 +106,9 @@ class ElexonService:
         """
         params = {
             "settlementDate": settlement_date,
+            "settlementDateFrom": settlement_date,
+            "settlementDateTo": settlement_date,
+            "fuelType": "WIND",
             "format": "json",
         }
         payload = await self._request("datasets/FUELHH", params=params)
@@ -117,6 +120,10 @@ class ElexonService:
         for item in raw_items:
             fuel_type = str(item.get("fuelType", "")).strip().upper()
             if fuel_type != "WIND":
+                continue
+
+            item_date = item.get("settlementDate")
+            if item_date and item_date != settlement_date:
                 continue
 
             period_raw = item.get("settlementPeriod")
@@ -165,6 +172,15 @@ class ElexonService:
         params: Dict[str, Any] = {"format": "json"}
         if settlement_date:
             params["settlementDate"] = settlement_date
+            # WINDFOR API requires publish date filters; derive publish range covering day-ahead and delivery
+            if not from_time and not to_time:
+                try:
+                    target_dt = datetime.strptime(settlement_date, "%Y-%m-%d").date()
+                    prev_dt = target_dt - timedelta(days=1)
+                    params["publishDateTimeFrom"] = f"{prev_dt.isoformat()}T00:00:00Z"
+                    params["publishDateTimeTo"] = f"{target_dt.isoformat()}T23:59:59Z"
+                except ValueError:
+                    pass
         if from_time:
             params["publishDateTimeFrom"] = format_utc_iso(from_time)
         if to_time:
@@ -186,6 +202,8 @@ class ElexonService:
                 continue
 
             s_date = item.get("settlementDate") or start_time.strftime("%Y-%m-%d")
+            if settlement_date and s_date != settlement_date:
+                continue
             s_period_raw = item.get("settlementPeriod")
             if s_period_raw is not None:
                 settlement_period = int(s_period_raw)
