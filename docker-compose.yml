@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: aerovolt-backend
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "8000:8000"
     environment:
@@ -32,7 +32,7 @@ services:
       args:
         - VITE_API_BASE_URL=http://127.0.0.1:8000
     container_name: aerovolt-frontend
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "5173:80"
     depends_on:
